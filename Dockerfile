@@ -1,7 +1,10 @@
 FROM debian:stable-slim
 
-ENV OMNIDB_VERSION=2.14.0
-ENV SERVICE_USER=omnidb
+ARG OMNIDB_VERSION_OVERRIDE=2.15.0
+ARG SERVICE_USER_OVERRIDE=omnidb
+
+ENV OMNIDB_VERSION=$OMNIDB_VERSION_OVERRIDE
+ENV SERVICE_USER=$SERVICE_USER_OVERRIDE
 
 WORKDIR /${SERVICE_USER}
 
@@ -15,9 +18,10 @@ RUN  adduser --system --home /${SERVICE_USER} --no-create-home ${SERVICE_USER} \
   && if [ ! -e '/bin/systemctl' ]; then ln -s /bin/echo /bin/systemctl; fi \
   && rm -rf /var/lib/apt/lists/*
 
-RUN wget -q https://omnidb.org/dist/${OMNIDB_VERSION}/omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb \
+RUN wget -q https://github.com/OmniDB/OmniDB/releases/download/${OMNIDB_VERSION}/omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb \
   && dpkg -i omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb \
   && rm -rf omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb
+  
 
 USER ${SERVICE_USER}
   
