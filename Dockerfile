@@ -18,7 +18,7 @@ RUN  adduser --system --home /${SERVICE_USER} --no-create-home ${SERVICE_USER} \
   && if [ ! -e '/bin/systemctl' ]; then ln -s /bin/echo /bin/systemctl; fi \
   && rm -rf /var/lib/apt/lists/* \
   && mkdir -p /etc/omnidb \
-  && chown -R ${SERVICE_USER}:${SERVICE_USER} /etc/omnidb
+  && chown -R ${SERVICE_USER}.root /etc/omnidb
 
 RUN wget -q https://github.com/OmniDB/OmniDB/releases/download/${OMNIDB_VERSION}/omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb \
   && dpkg -i omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb \
