@@ -16,9 +16,7 @@ RUN  adduser --system --home /${SERVICE_USER} --no-create-home ${SERVICE_USER} \
   && apt-get -y upgrade \
   && apt-get install -y wget dumb-init \
   && if [ ! -e '/bin/systemctl' ]; then ln -s /bin/echo /bin/systemctl; fi \
-  && rm -rf /var/lib/apt/lists/* \
-  && mkdir -p /etc/omnidb \
-  && chown -R ${SERVICE_USER}.root /etc/omnidb
+  && rm -rf /var/lib/apt/lists/* 
 
 RUN wget -q https://github.com/OmniDB/OmniDB/releases/download/${OMNIDB_VERSION}/omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb \
   && dpkg -i omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb \
@@ -31,4 +29,4 @@ EXPOSE 8000
 EXPOSE 25482
 
 ENTRYPOINT [ "/usr/bin/dumb-init", "--" ]
-CMD ["omnidb-server", "-H", "127.0.0.1", "-e", "443", "-d", "/etc/omnidb"]
+CMD ["omnidb-server", "-H", "127.0.0.1"]
