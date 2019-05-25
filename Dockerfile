@@ -29,4 +29,4 @@ EXPOSE 8000
 EXPOSE 25482
 
 ENTRYPOINT [ "/usr/bin/dumb-init", "--" ]
-CMD ["omnidb-server", "-H", "127.0.0.1"]
+CMD ["omnidb-server", "-H", "0.0.0.0", "--port", "8000", "-d", "/omnidb"]
