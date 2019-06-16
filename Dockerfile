@@ -1,32 +1,36 @@
 FROM debian:stable-slim
 
-ARG OMNIDB_VERSION_OVERRIDE=2.15.0
-ARG SERVICE_USER_OVERRIDE=omnidb
+# Install Packages
+RUN apt-get update && \
+  apt-get -y upgrade && \
+  apt-get install -y wget supervisor && \
+  if [ ! -e '/bin/systemctl' ]; then ln -s /bin/echo /bin/systemctl; fi && \
+  rm -rf /var/lib/apt/lists/* 
 
-ENV OMNIDB_VERSION=$OMNIDB_VERSION_OVERRIDE
-ENV SERVICE_USER=$SERVICE_USER_OVERRIDE
+# Perms
+RUN  adduser --system --home /omnidb --no-create-home omnidb && \
+  mkdir -p /omnidb && \
+  mkdir -p /omnidb-config && \
+  chown -R omnidb.root /omnidb && \
+  chown -R omnidb.root /omnidb-config && \
+  chown -R omnidb.root /run 
 
-WORKDIR /${SERVICE_USER}
+WORKDIR /omnidb
 
-RUN  adduser --system --home /${SERVICE_USER} --no-create-home ${SERVICE_USER} \
-  && mkdir -p /${SERVICE_USER} \
-  && chown -R ${SERVICE_USER}.root /${SERVICE_USER} \
-  && chmod -R g+w /${SERVICE_USER} \
-  && apt-get update \
-  && apt-get -y upgrade \
-  && apt-get install -y wget dumb-init \
-  && if [ ! -e '/bin/systemctl' ]; then ln -s /bin/echo /bin/systemctl; fi \
-  && rm -rf /var/lib/apt/lists/* 
+ARG OMNIDB_VERSION=2.15.0
+ENV OMNIDB_VERSION=$OMNIDB_VERSION
 
-RUN wget -q https://github.com/OmniDB/OmniDB/releases/download/${OMNIDB_VERSION}/omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb \
-  && dpkg -i omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb \
-  && rm -rf omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb
+# Install Omnidb
+RUN wget -q https://github.com/OmniDB/OmniDB/releases/download/${OMNIDB_VERSION}/omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb && \
+  dpkg -i omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb && \
+  rm -rf omnidb-server_${OMNIDB_VERSION}-debian-amd64.deb
   
+# Configs
+COPY ./docker-config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./docker-config/omnidb.conf /omnidb-config/omnidb.conf
 
-USER ${SERVICE_USER}
+USER omnidb
   
-EXPOSE 8000
-EXPOSE 25482
+EXPOSE 8081 25482
 
-ENTRYPOINT [ "/usr/bin/dumb-init", "--" ]
-CMD ["omnidb-server", "-H", "0.0.0.0", "--port", "8000", "-d", "/omnidb"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

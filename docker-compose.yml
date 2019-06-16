@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  omnidb:
+    container_name: ${COMPOSE_PROJECT_NAME}_omnidb
+    build:
+      context: .
+      args:
+        OMNIDB_VERSION: ${OMNIDB_VERSION}
+    restart: unless-stopped
+    networks:
+      - frontend
+      - db-network
+    volumes:
+      - omnidb:/omnidb
+    labels:
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.web.frontend.rule=Host:${HOST_NAME}"
+      - "traefik.frontend.entryPoints=https"
+      - "traefik.web.port=8081"
+      - "traefik.wss.frontend.rule=Host:${HOST_NAME};Path:/wss"
+      - "traefik.wss.port=25482"
+
+volumes:
+  omnidb: {}
+
+networks:
+  frontend:
+    external:
+      name: ${TRAEFIK_NETWORK}
+  db-network:
+    external:
+      name: ${DB_NETWORK}
